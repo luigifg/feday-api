@@ -12,7 +12,7 @@ app.use(bodyParser.json())
 
 // Adicionando o CORS aqui, antes das rotas
 app.use(cors({
-    origin: "https://feday-app.vercel.app",
+    origin: process.env.CORS,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
