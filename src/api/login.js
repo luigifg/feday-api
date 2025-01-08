@@ -12,7 +12,13 @@ const post = async (req, res) => {
   if (result && result.length != 0 && result.status === 1) {
     const expiration = moment().add(1, "hours").toDate()
 
-    res.cookie("cookieID", result.id, { expires: expiration, httpOnly: true, secure: true, sameSite: 'None' })
+    res.cookie("cookieID", result.id, {
+      expires: expiration,
+      httpOnly: true,
+      secure: true,  // Necessário em HTTPS
+      sameSite: 'None',  // Permite cookies entre origens
+      path: '/',  // Garante que o cookie seja acessível em todas as rotas
+    })
     delete result.password
   }
 

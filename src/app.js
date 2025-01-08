@@ -1,17 +1,22 @@
+const cookieParser = require('cookie-parser')
+const bodyParser = require('body-parser')
 const express = require('express')
 const app = express()
-const bodyParser = require('body-parser')
 const cors = require('cors')
-
 const helmet = require('helmet')
 require('dotenv').config()
 const routes = require('./config/routes')
 
-const cookieParser = require('cookie-parser')
 app.use(cookieParser())
-
 app.use(bodyParser.json())
-app.use(cors({ credentials: true, origin: process.env.CORS,  }))
+
+// Adicionando o CORS aqui, antes das rotas
+app.use(cors({
+    origin: "https://feday-app.vercel.app",
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+}));
+
 app.use(helmet())
 
 routes.start(app)
