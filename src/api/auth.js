@@ -1,6 +1,8 @@
 const facade = require("../facade/validateAcl");
 
 const validate = async (req, res, next) => {
+  console.log('Cookies recebidos:', req.cookies);
+  console.log('Cookie ID:', req.cookies.cookieID);
   if (req.cookies.cookieID) {
     const url = req.originalUrl.split("/")[1].split("?")[0];
 
