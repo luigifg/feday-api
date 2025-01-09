@@ -28,12 +28,13 @@
 const path = require('path');
 
 module.exports = {
-  client: 'mysql',
+  client: 'mysql2',
   connection: {
     database: 'railway',
+    port: '11352',
     user: 'root',
-    password: 'xslOhpaTboJacAVNSjqRPPvfBTSrqTek',
-    host: 'mysql.railway.internal',
+    password: 'kCUuJndgUHiezHLoTKacrbqcuDNRTNNK',
+    host: 'viaduct.proxy.rlwy.net',
   },
   pool: {
     min: 2,
