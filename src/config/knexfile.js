@@ -1,7 +1,7 @@
 const path = require('path')
 
 module.exports = {
-  client: 'mysql',
+  client: 'mysql2',
   connection: {
     database: process.env.DBNAME,
     user: process.env.DBUSER,
