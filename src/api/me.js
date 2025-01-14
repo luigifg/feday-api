@@ -1,6 +1,8 @@
 const facade = require("../facade/me");
 
 const getById = async (req, res) => {
+  console.log("Headers recebidos:", req.headers);
+  console.log("Cookies recebidos:", req.cookies);
   const id = req.cookies.cookieID;  // Verifica o cookie "cookieID"
   console.log("ID do cookie:", id);  // Log do ID do cookie recebido
 
