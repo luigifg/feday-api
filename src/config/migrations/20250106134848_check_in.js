@@ -2,6 +2,7 @@ exports.up = function (knex) {
     return knex.schema.createTable('check_in', function (table) {
       table.increments('id').primary()
       table.integer('user_id').unsigned().notNullable()
+      table.string('user_name').notNullable()
       table.integer('hour').unsigned().notNullable()
       table.integer('event_id').unsigned().notNullable()
       table.integer('admin_id').unsigned().notNullable()

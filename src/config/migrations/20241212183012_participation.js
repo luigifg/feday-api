@@ -2,6 +2,7 @@ exports.up = function (knex) {
     return knex.schema.createTable('participation', function (table) {
       table.increments('id').primary()
       table.integer('user_id').unsigned().notNullable()
+      table.string('user_name').notNullable()
       table.integer('schedule_id').unsigned().notNullable()
       table.integer('event_id').unsigned().notNullable()
       table.string('title').notNullable()
