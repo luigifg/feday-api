@@ -125,6 +125,36 @@ const update = async (object, id) => {
     return false;
   }
 
+  // Log para depuração
+  console.log("Objeto recebido para atualização:", object);
+  console.log("ID do usuário para atualização:", id);
+
+  // Criar objeto para atualização (iremos adicionar campos conforme necessário)
+  const updateObj = {};
+
+  // Verificar se o campo nfcActivated está presente - processar diretamente sem validação
+  if (object.nfcActivated !== undefined) {
+    console.log(`Campo nfcActivated presente com valor: ${object.nfcActivated}`);
+    // Garantir que seja armazenado como número (0 ou 1)
+    updateObj.nfcActivated = object.nfcActivated === true || object.nfcActivated === 1 ? 1 : 0;
+    console.log(`Valor de nfcActivated normalizado: ${updateObj.nfcActivated}`);
+  }
+
+  // Se tiver apenas nfcActivated, não precisa validar outros campos
+  if (Object.keys(object).length === 1 && object.nfcActivated !== undefined) {
+    console.log("Atualizando apenas o campo nfcActivated...");
+    return await dbo.update(updateObj, id, tableName);
+  }
+
+  // Processar outros campos se presentes
+  if (object.name !== undefined) updateObj.name = object.name;
+  if (object.email !== undefined) updateObj.email = object.email;
+  if (object.phone !== undefined) updateObj.phone = object.phone;
+  if (object.company !== undefined) updateObj.company = object.company;
+  if (object.position !== undefined) updateObj.position = object.position;
+  if (object.status !== undefined) updateObj.status = object.status;
+
+  // Se tiver senha, precisa processar especialmente
   if (object.password) {
     console.log("Validando e atualizando senha do usuário...");
 
@@ -143,7 +173,13 @@ const update = async (object, id) => {
     }
 
     try {
-      await validation.object.validateAsync(object, {
+      // Validar apenas os campos relevantes
+      const validationObj = { 
+        password: object.password,
+        confirmPassword: object.confirmPassword 
+      };
+      
+      await validation.object.validateAsync(validationObj, {
         abortEarly: false,
         messages: messages,
       });
@@ -160,9 +196,6 @@ const update = async (object, id) => {
       }
     }
 
-    // Remover confirmPassword antes de salvar no banco
-    delete object.confirmPassword;
-
     // Gerar hash da senha
     console.log("Gerando hash da nova senha...");
     const hash = await new Promise((resolve, reject) => {
@@ -175,11 +208,12 @@ const update = async (object, id) => {
       });
     });
 
-    object.password = hash;
+    updateObj.password = hash;
   }
 
+  console.log("Objeto final para atualização:", updateObj);
   console.log("Atualizando o usuário com ID:", id);
-  return await dbo.update(object, id, tableName);
+  return await dbo.update(updateObj, id, tableName);
 };
 
 const remove = async (id) => {

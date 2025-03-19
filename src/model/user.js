@@ -12,6 +12,7 @@ const object = Joi.object().keys({
   password: Joi.string().regex(passwordRegex, "password").label("Senha"),
   confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
   status: Joi.number().label("Status"),
+  nfcActivated: Joi.boolean().default(false).label("Cartão NFC ativado")
 
   // confirmPassword: "",
   

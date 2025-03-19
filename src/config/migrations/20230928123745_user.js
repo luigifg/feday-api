@@ -8,6 +8,7 @@ exports.up = function (knex) {
     table.string('position')
     table.string('password').notNullable()
     table.boolean('status').defaultTo(true)
+    table.boolean('nfc_activated').default(false)
     table.timestamps(true, true)
     table.datetime('deleted_at').defaultTo(null)
   })
