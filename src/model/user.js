@@ -9,11 +9,12 @@ const object = Joi.object().keys({
   phone: Joi.string().label("Telefone"),
   company: Joi.string().label("Empresa"),
   position: Joi.string().label("Cargo"),
+  gender: Joi.string().valid('M', 'F').required().label("Gênero"), // Novo campo com validação
   password: Joi.string().regex(passwordRegex, "password").label("Senha"),
   confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
   status: Joi.number().label("Status"),
   nfcActivated: Joi.boolean().default(false).label("Cartão NFC ativado")
-
+  
   // confirmPassword: "",
   
 })

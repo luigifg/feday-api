@@ -6,6 +6,7 @@ exports.up = function (knex) {
     table.string('phone')
     table.string('company')
     table.string('position')
+    table.string('gender', 1).notNullable() // Novo campo de gênero como CHAR(1)
     table.string('password').notNullable()
     table.boolean('status').defaultTo(true)
     table.boolean('nfc_activated').default(false)
