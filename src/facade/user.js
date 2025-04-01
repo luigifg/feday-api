@@ -42,9 +42,15 @@ const get = async (object) => {
 };
 
 const insert = async (object) => {
-  console.log("Iniciando o processo de criação de usuário...");
-
   try {
+    // Verificar campos obrigatórios
+    const requiredFields = ["name", "company", "position", "email", "password", "confirmPassword"];
+    for (const field of requiredFields) {
+      if (!object[field]) {
+        return { errors: [`O campo ${field} é obrigatório.`] };
+      }
+    }
+
     const passwordRegex =
       /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/;
 
@@ -61,6 +67,17 @@ const insert = async (object) => {
       abortEarly: false,
       messages: messages,
     });
+    
+    // NOVA VERIFICAÇÃO: Verificar se o email já existe antes de prosseguir
+    if (object.email) {    
+      // CORREÇÃO: Usar dbo.login em vez de db diretamente
+      const existingUser = await dbo.login(tableName, object.email);
+      
+      if (existingUser) {
+        console.log(`Email '${object.email}' já está cadastrado.`);
+        return { errors: ["Email já cadastrado no sistema. Por favor, use outro email."] };
+      }
+    }
   } catch (error) {
     console.error("Erro na validação dos dados do usuário:", error);
     if (error.details) {
@@ -89,9 +106,24 @@ const insert = async (object) => {
   object.password = hash;
 
   console.log("Inserindo o usuário na tabela...");
-  const newUser = await dbo.insert(object, tableName, ["email"]); // Inserir usuário
+  // Usamos o insert original do dbo, sem modificá-lo
+  const newUser = await dbo.insert(object, tableName, ["id"]);
 
   console.log("Resultado da inserção do usuário:", newUser);
+
+  // Verifica se houve erro na inserção
+  if (newUser && newUser.errors) {
+    console.error("Erro ao inserir usuário:", newUser.errors);
+    
+    // Verifica o tipo de erro para dar mensagens mais específicas
+    if (typeof newUser.errors === 'string') {
+      if (newUser.errors.includes('Duplicate entry') || newUser.errors.includes('duplicate key')) {
+        return { errors: ["Email já cadastrado no sistema. Por favor, use outro email."] };
+      }
+      return { errors: [newUser.errors] };
+    }
+    return { errors: ["Erro ao criar usuário. Tente novamente."] };
+  }
 
   // Verifica se a inserção foi bem-sucedida
   if (newUser && newUser.length > 0) {
@@ -114,6 +146,7 @@ const insert = async (object) => {
     }
   } else {
     console.error("Falha na criação do usuário. Nenhum ID retornado.");
+    return { errors: ["Falha na criação do usuário. Por favor, tente novamente mais tarde."] };
   }
 
   return newUser;

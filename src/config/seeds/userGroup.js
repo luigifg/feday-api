@@ -7,6 +7,10 @@ exports.seed = async function (knex) {
     {
       id_user: 2,
       id_group: 2
+    },
+    {
+      id_user: 3,
+      id_group: 2
     }
   ])
 }

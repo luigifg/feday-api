@@ -94,10 +94,23 @@ const getById = async (id, tableName) => {
 
 const insert = async (object, tableName, fields = ["id"]) => {
   object.deleted_at = null;
+  
+  // Verificar se já existe um registro com o mesmo email (apenas para a tabela de usuários)
+  if (tableName === 'user' && fields.includes("email") && object.email) {
+    const existingRecord = await db(tableName)
+      .select('id')
+      .where("email", object.email)
+      .where("deleted_at", null)
+      .first();
+    
+    if (existingRecord) {
+      return { errors: "Email já cadastrado no sistema." };
+    }
+  }
+  
+  // Mantém o comportamento original, mas sem usar onConflict().merge() para emails
   const result = await db(tableName)
     .insert(object)
-    .onConflict(fields)
-    .merge()
     .catch((err) => {
       return { errors: err.message };
     });
