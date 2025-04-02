@@ -130,27 +130,26 @@ const insert = async (object) => {
   if (newUser && newUser.length > 0) {
     const userId = newUser[0];
     console.log("Usuário criado com sucesso. ID do usuário:", userId);
-
+  
     // Criação do user group
     const userGroup = {
       idUser: userId, // ID do usuário recém-criado
       idGroup: 1, // Associar ao grupo de ID '1'
     };
-
+  
     console.log("Inserindo o usuário no grupo...");
     const userGroupResponse = await facade.insert(userGroup);
-
+  
     if (userGroupResponse.errors) {
       console.error("Erro ao criar user_group:", userGroupResponse.errors);
     } else {
       console.log("Usuário associado ao grupo com sucesso.");
     }
     
-    // NOVO: Enviar email de boas-vindas (de forma assíncrona, sem await)
+    // Iniciar envio de e-mail sem esperar a conclusão
     try {
-      console.log("Iniciando envio de email de boas-vindas...");
-      // Enviamos o email sem await, para não bloquear o fluxo
       object.id = userId;
+      // IMPORTANTE: Não usar await aqui para não bloquear o fluxo
       mailer.sendWelcomeEmail(object)
         .then(() => console.log("Email de boas-vindas enviado com sucesso para:", object.email))
         .catch(err => console.error("Erro ao enviar email de boas-vindas:", err));
@@ -161,7 +160,7 @@ const insert = async (object) => {
     console.error("Falha na criação do usuário. Nenhum ID retornado.");
     return { errors: ["Falha na criação do usuário. Por favor, tente novamente mais tarde."] };
   }
-
+  
   return newUser;
 };
 
