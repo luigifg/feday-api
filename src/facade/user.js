@@ -4,6 +4,7 @@ const { messages } = require("joi-translation-pt-br");
 const tableName = "user";
 const bcrypt = require("bcrypt");
 const facade = require("../facade/userGroup");
+const mailer = require("../config/mailer");
 const saltRounds = 10;
 
 const get = async (object) => {
@@ -143,6 +144,18 @@ const insert = async (object) => {
       console.error("Erro ao criar user_group:", userGroupResponse.errors);
     } else {
       console.log("Usuário associado ao grupo com sucesso.");
+    }
+    
+    // NOVO: Enviar email de boas-vindas (de forma assíncrona, sem await)
+    try {
+      console.log("Iniciando envio de email de boas-vindas...");
+      // Enviamos o email sem await, para não bloquear o fluxo
+      object.id = userId;
+      mailer.sendWelcomeEmail(object)
+        .then(() => console.log("Email de boas-vindas enviado com sucesso para:", object.email))
+        .catch(err => console.error("Erro ao enviar email de boas-vindas:", err));
+    } catch (emailError) {
+      console.error("Erro ao iniciar envio de email:", emailError);
     }
   } else {
     console.error("Falha na criação do usuário. Nenhum ID retornado.");
