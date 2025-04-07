@@ -79,8 +79,8 @@ const getByUserId = async (tableName, userId, limit = 10, page = 1) => {
 
 const getById = async (id, tableName) => {
   const result = await db(tableName)
-    .select(`${tableName}.*`, 'userGroup.idGroup')
-    .leftJoin('userGroup', `${tableName}.id`, 'userGroup.idUser')
+    .select(`${tableName}.*`, "userGroup.idGroup")
+    .leftJoin("userGroup", `${tableName}.id`, "userGroup.idUser")
     .where(`${tableName}.id`, id)
     .where(`${tableName}.deleted_at`, null)
     .first()
@@ -94,20 +94,20 @@ const getById = async (id, tableName) => {
 
 const insert = async (object, tableName, fields = ["id"]) => {
   object.deleted_at = null;
-  
+
   // Verificar se já existe um registro com o mesmo email (apenas para a tabela de usuários)
-  if (tableName === 'user' && fields.includes("email") && object.email) {
+  if (tableName === "user" && fields.includes("email") && object.email) {
     const existingRecord = await db(tableName)
-      .select('id')
+      .select("id")
       .where("email", object.email)
       .where("deleted_at", null)
       .first();
-    
+
     if (existingRecord) {
       return { errors: "Email já cadastrado no sistema." };
     }
   }
-  
+
   // Mantém o comportamento original, mas sem usar onConflict().merge() para emails
   const result = await db(tableName)
     .insert(object)
@@ -152,6 +152,34 @@ const login = async (tableName, email) => {
   return result;
 };
 
+const getEventParticipantsCount = async () => {
+  try {
+    console.log("Executando consulta para contar participantes por evento");
+
+    // Esta consulta agrupa por eventId e scheduleId e conta os registros
+    const result = await db("participation")
+      .select("eventId", "scheduleId")
+      .count("id as count")
+      .whereNull("deleted_at")
+      .groupBy("eventId", "scheduleId");
+
+    console.log("Resultado da consulta de contagem:", result);
+
+    // Transforma o resultado em um mapa para fácil acesso
+    const countsMap = {};
+    result.forEach((item) => {
+      const key = `${item.eventId}-${item.scheduleId}`;
+      countsMap[key] = parseInt(item.count);
+    });
+
+    console.log("Mapa de contagens criado:", countsMap);
+    return countsMap;
+  } catch (error) {
+    console.error("Erro ao contar participantes por evento:", error);
+    return {};
+  }
+};
+
 const getPendingImporter = async (tableName) => {
   const result = await db(tableName)
     .select()
@@ -194,6 +222,7 @@ const validateAcl = async (idUser, path) => {
 
 module.exports = {
   get,
+  getEventParticipantsCount,
   getById,
   getByUserId,
   insert,

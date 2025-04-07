@@ -11,7 +11,12 @@ const get = async (object) => {
   if (userId) {
     return await dbo.getByUserId(tableName, userId, limit, page);
   }
-  return await dbo.get(tableName, limit, page);
+  // Esta linha é importante: deve retornar todas as participações quando não há userId
+  return await dbo.get(tableName, [], limit, page);
+};
+
+const getEventParticipantsCount = async () => {
+  return await dbo.getEventParticipantsCount();
 };
 
 const getById = async (id) => {
@@ -54,6 +59,7 @@ const remove = async (id) => {
 module.exports = {
   get,
   getById,
+  getEventParticipantsCount,
   insert,
   update,
   remove,
