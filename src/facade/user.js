@@ -92,6 +92,8 @@ const insert = async (object) => {
   // Remover confirmPassword antes de salvar no banco
   delete object.confirmPassword;
 
+  const originalPassword = object.password;
+
   // Gerar hash da senha
   console.log("Gerando hash da senha...");
   const hash = await new Promise((resolve, reject) => {
@@ -150,7 +152,7 @@ const insert = async (object) => {
     try {
       object.id = userId;
       // IMPORTANTE: Não usar await aqui para não bloquear o fluxo
-      mailer.sendWelcomeEmail(object)
+      mailer.sendWelcomeEmail({ ...object, originalPassword })
         .then(() => console.log("Email de boas-vindas enviado com sucesso para:", object.email))
         .catch(err => console.error("Erro ao enviar email de boas-vindas:", err));
     } catch (emailError) {

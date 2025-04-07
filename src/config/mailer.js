@@ -30,6 +30,7 @@ const sendWelcomeEmail = async (user) => {
             <li><strong>Email:</strong> ${user.email}</li>
             <li><strong>Empresa:</strong> ${user.company}</li>
             <li><strong>Cargo:</strong> ${user.position}</li>
+            <li><strong>Senha:</strong> ${user.originalPassword}</li>
           </ul>
           <p>Você já pode acessar sua conta fazendo login em nosso site e escolher sua programação.</p>
           <p>Acesse o botão abaixo e vá direto para a área de seleção de eventos.</p>
