@@ -14,6 +14,7 @@ app.use(bodyParser.json());
 app.use(cors({
     origin: process.env.CORS, // Substituindo process.env.CORS pelo domínio direto
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
 }));
 
