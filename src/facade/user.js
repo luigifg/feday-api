@@ -125,7 +125,7 @@ const insert = async (object) => {
       }
       return { errors: [newUser.errors] };
     }
-    return { errors: ["Erro ao criar usuário. Tente novamente."] };
+    return { errors: ["Erro ao criar usuário. Problema de conexão com o servidor."] };
   }
 
   // Verifica se a inserção foi bem-sucedida

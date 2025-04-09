@@ -10,12 +10,23 @@ const routes = require('./config/routes');
 app.use(cookieParser());
 app.use(bodyParser.json());
 
+app.use((req, res, next) => {
+    console.log('======= DIAGNÓSTICO DE COOKIE =======');
+    console.log('Headers completos:', req.headers);
+    console.log('Cookies recebidos:', req.cookies);
+    console.log('User-Agent:', req.headers['user-agent']);
+    console.log('Origin:', req.headers.origin);
+    console.log('=====================================');
+    next();
+  });
+
 // Adicionando o CORS aqui, antes das rotas
 app.use(cors({
-    origin: process.env.CORS, // Substituindo process.env.CORS pelo domínio direto
+    origin: process.env.CORS.split(','), // Substituindo process.env.CORS pelo domínio direto
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    optionsSuccessStatus: 200
 }));
 
 app.use(helmet());
