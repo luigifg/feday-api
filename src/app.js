@@ -10,15 +10,20 @@ const routes = require('./config/routes');
 app.use(cookieParser());
 app.use(bodyParser.json());
 
+// app.use((req, res, next) => {
+//     console.log('======= DIAGNÓSTICO DE COOKIE =======');
+//     console.log('Headers completos:', req.headers);
+//     console.log('Cookies recebidos:', req.cookies);
+//     console.log('User-Agent:', req.headers['user-agent']);
+//     console.log('Origin:', req.headers.origin);
+//     console.log('=====================================');
+//     next();
+//   });
+
 app.use((req, res, next) => {
-    console.log('======= DIAGNÓSTICO DE COOKIE =======');
-    console.log('Headers completos:', req.headers);
-    console.log('Cookies recebidos:', req.cookies);
-    console.log('User-Agent:', req.headers['user-agent']);
-    console.log('Origin:', req.headers.origin);
-    console.log('=====================================');
+    res.header('Access-Control-Allow-Origin', '*');
     next();
-  });
+});
 
 // Adicionando o CORS aqui, antes das rotas
 app.use(cors({

@@ -17,7 +17,6 @@ const post = async (req, res) => {
       httpOnly: true,
       secure: true,  // Necessário em HTTPS
       sameSite: 'None',  // Permite cookies entre origens
-
     })
     delete result.password
   }

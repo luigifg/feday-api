@@ -44,7 +44,7 @@ const get = async (object) => {
 
 const insert = async (object) => {
   try {
-    // Verificar campos obrigatórios
+    // Verificação rápida dos campos obrigatórios
     const requiredFields = ["name", "company", "position", "email", "password", "confirmPassword"];
     for (const field of requiredFields) {
       if (!object[field]) {
@@ -52,118 +52,70 @@ const insert = async (object) => {
       }
     }
 
-    const passwordRegex =
-      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/;
-
-    // Validação manual com regex
+    // Verificação de senha com regex
+    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*\-])(?=.{8,})/;
     if (!passwordRegex.test(object.password)) {
-      console.log("Erro de validação: Senha não atende os requisitos.");
-      throw new Error(
-        "A senha deve ter no mínimo 8 caracteres contendo pelo menos 1 número, 1 letra maiúscula, 1 letra minúscula e 1 caractere especial."
-      );
+      return { errors: ["A senha deve ter no mínimo 8 caracteres contendo pelo menos 1 número, 1 letra maiúscula, 1 letra minúscula e 1 caractere especial."] };
     }
 
-    // Validação com Joi
+    // Verificar se o email já existe 
+    if (object.email) {    
+      const existingUser = await dbo.login(tableName, object.email);
+      if (existingUser) {
+        return { errors: ["Email já cadastrado no sistema. Por favor, use outro email."] };
+      }
+    }
+
+    // Validação completa com Joi
     await validation.object.validateAsync(object, {
       abortEarly: false,
       messages: messages,
     });
-    
-    // NOVA VERIFICAÇÃO: Verificar se o email já existe antes de prosseguir
-    if (object.email) {    
-      // CORREÇÃO: Usar dbo.login em vez de db diretamente
-      const existingUser = await dbo.login(tableName, object.email);
+
+    // Preparação do objeto para inserção
+    delete object.confirmPassword;
+    const originalPassword = object.password;
+    object.password = await bcrypt.hash(object.password, saltRounds);
+
+    // Inserção do usuário
+    const newUser = await dbo.insert(object, tableName, ["id"]);
+
+    // Tratamento de erros da inserção
+    if (newUser && newUser.errors) {
+      if (typeof newUser.errors === 'string' && newUser.errors.includes('Duplicate entry')) {
+        return { errors: ["Email já cadastrado no sistema. Por favor, use outro email."] };
+      }
+      return { errors: [typeof newUser.errors === 'string' ? newUser.errors : "Erro ao criar usuário. Problema de conexão com o servidor."] };
+    }
+
+    // Criação do user_group se bem-sucedido
+    if (newUser && newUser.length > 0) {
+      const userId = newUser[0];
+      await facade.insert({
+        idUser: userId,
+        idGroup: 1
+      });
       
-      if (existingUser) {
-        console.log(`Email '${object.email}' já está cadastrado.`);
-        return { errors: ["Email já cadastrado no sistema. Por favor, use outro email."] };
-      }
-    }
-  } catch (error) {
-    console.error("Erro na validação dos dados do usuário:", error);
-    if (error.details) {
-      const errors = error.details.map((el) => el.message);
-      return { errors };
-    } else {
-      return { errors: [error.message] };
-    }
-  }
-
-  // Remover confirmPassword antes de salvar no banco
-  delete object.confirmPassword;
-
-  const originalPassword = object.password;
-
-  // Gerar hash da senha
-  console.log("Gerando hash da senha...");
-  const hash = await new Promise((resolve, reject) => {
-    bcrypt.hash(object.password, saltRounds, function (err, hash) {
-      if (err) {
-        console.error("Erro ao gerar hash da senha:", err);
-        reject(err);
-      }
-      resolve(hash);
-    });
-  });
-
-  object.password = hash;
-
-  console.log("Inserindo o usuário na tabela...");
-  // Usamos o insert original do dbo, sem modificá-lo
-  const newUser = await dbo.insert(object, tableName, ["id"]);
-
-  console.log("Resultado da inserção do usuário:", newUser);
-
-  // Verifica se houve erro na inserção
-  if (newUser && newUser.errors) {
-    console.error("Erro ao inserir usuário:", newUser.errors);
-    
-    // Verifica o tipo de erro para dar mensagens mais específicas
-    if (typeof newUser.errors === 'string') {
-      if (newUser.errors.includes('Duplicate entry') || newUser.errors.includes('duplicate key')) {
-        return { errors: ["Email já cadastrado no sistema. Por favor, use outro email."] };
-      }
-      return { errors: [newUser.errors] };
-    }
-    return { errors: ["Erro ao criar usuário. Problema de conexão com o servidor."] };
-  }
-
-  // Verifica se a inserção foi bem-sucedida
-  if (newUser && newUser.length > 0) {
-    const userId = newUser[0];
-    console.log("Usuário criado com sucesso. ID do usuário:", userId);
-  
-    // Criação do user group
-    const userGroup = {
-      idUser: userId, // ID do usuário recém-criado
-      idGroup: 1, // Associar ao grupo de ID '1'
-    };
-  
-    console.log("Inserindo o usuário no grupo...");
-    const userGroupResponse = await facade.insert(userGroup);
-  
-    if (userGroupResponse.errors) {
-      console.error("Erro ao criar user_group:", userGroupResponse.errors);
-    } else {
-      console.log("Usuário associado ao grupo com sucesso.");
+      // Retornar usuário com senha original para possibilitar envio de email no frontend
+      return { 
+        success: true, 
+        user: { 
+          id: userId, 
+          ...object, 
+          originalPassword 
+        } 
+      };
     }
     
-    // Iniciar envio de e-mail sem esperar a conclusão
-    try {
-      object.id = userId;
-      // IMPORTANTE: Não usar await aqui para não bloquear o fluxo
-      mailer.sendWelcomeEmail({ ...object, originalPassword })
-        .then(() => console.log("Email de boas-vindas enviado com sucesso para:", object.email))
-        .catch(err => console.error("Erro ao enviar email de boas-vindas:", err));
-    } catch (emailError) {
-      console.error("Erro ao iniciar envio de email:", emailError);
-    }
-  } else {
-    console.error("Falha na criação do usuário. Nenhum ID retornado.");
     return { errors: ["Falha na criação do usuário. Por favor, tente novamente mais tarde."] };
+  } catch (error) {
+    console.error("Erro no processo:", error);
+    return { 
+      errors: error.details 
+        ? error.details.map(el => el.message) 
+        : [error.message || "Erro ao processar solicitação"] 
+    };
   }
-  
-  return newUser;
 };
 
 const update = async (object, id) => {
