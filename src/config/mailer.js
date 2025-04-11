@@ -43,7 +43,7 @@ const sendWelcomeEmail = async (user) => {
       `,
     });
 
-    console.log("Email enviado com sucesso:", info.messageId);
+    // console.log("Email enviado com sucesso:", info.messageId);
     return true;
   } catch (error) {
     console.error("Erro ao enviar email:", error);

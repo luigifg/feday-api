@@ -20,7 +20,7 @@ const post = async body => {
     // Usuário inativo
     return 403
   }
-  console.log("Senha", body.password, user.password)
+  // console.log("Senha", body.password, user.password)
 
   const isPasswordMatch = bcrypt.compareSync(body.password, user.password)
   if (!isPasswordMatch) {

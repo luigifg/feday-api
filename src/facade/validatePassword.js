@@ -12,8 +12,8 @@ const post = async body => {
   if (!user || user.length === 0) {
     return false
   }
-  console.log(body.password)
-  console.log(user.data[0].password)
+  // console.log(body.password)
+  // console.log(user.data[0].password)
   const isPasswordMatch = bcrypt.compareSync(
     body.password,
     user.data[0].password

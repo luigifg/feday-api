@@ -154,7 +154,7 @@ const login = async (tableName, email) => {
 
 const getEventParticipantsCount = async () => {
   try {
-    console.log("Executando consulta para contar participantes por evento");
+    // console.log("Executando consulta para contar participantes por evento");
 
     // Esta consulta agrupa por eventId e scheduleId e conta os registros
     const result = await db("participation")
@@ -163,7 +163,7 @@ const getEventParticipantsCount = async () => {
       .whereNull("deleted_at")
       .groupBy("eventId", "scheduleId");
 
-    console.log("Resultado da consulta de contagem:", result);
+    // console.log("Resultado da consulta de contagem:", result);
 
     // Transforma o resultado em um mapa para fácil acesso
     const countsMap = {};
@@ -172,7 +172,7 @@ const getEventParticipantsCount = async () => {
       countsMap[key] = parseInt(item.count);
     });
 
-    console.log("Mapa de contagens criado:", countsMap);
+    // console.log("Mapa de contagens criado:", countsMap);
     return countsMap;
   } catch (error) {
     console.error("Erro ao contar participantes por evento:", error);

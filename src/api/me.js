@@ -11,12 +11,12 @@ const getById = async (req, res) => {
 
   try {
     const result = await facade.getById(id);
-    console.log("Resultado da consulta no banco:", result);  // Log do resultado da consulta ao banco
+    // console.log("Resultado da consulta no banco:", result);  // Log do resultado da consulta ao banco
     if (result) {
-      console.log("Usuário encontrado:", result);  // Log quando o usuário for encontrado
+      // console.log("Usuário encontrado:", result);  // Log quando o usuário for encontrado
       return res.status(200).send(result);
     } else {
-      console.log("Usuário não encontrado no banco.");  // Log caso o usuário não seja encontrado
+      // console.log("Usuário não encontrado no banco.");  // Log caso o usuário não seja encontrado
       return res.sendStatus(404);  // Caso não encontre o usuário no banco
     }
   } catch (error) {

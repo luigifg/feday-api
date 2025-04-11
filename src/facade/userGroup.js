@@ -4,7 +4,7 @@ const { messages } = require('joi-translation-pt-br');
 const tableName = 'user_group';
 
 const get = async (object) => {
-  console.log('Buscando user groups com os filtros:', object);
+  // console.log('Buscando user groups com os filtros:', object);
 
   const { limit, page, order, direction, ...filterParams } = object;
 
@@ -29,7 +29,7 @@ const get = async (object) => {
 };
 
 const insert = async (object) => {
-  console.log('Iniciando inserção no user_group:', object);
+  // console.log('Iniciando inserção no user_group:', object);
 
   try {
     await validation.object.validateAsync(object, {
@@ -43,7 +43,7 @@ const insert = async (object) => {
   }
 
   const result = await dbo.insert(object, tableName, ['idUser', 'idGroup']); // Garantindo que o usuário não seja duplicado para o mesmo grupo
-  console.log('Resultado da inserção no user_group:', result);
+  // console.log('Resultado da inserção no user_group:', result);
 
   return result;
 };
