@@ -2,7 +2,7 @@ const facade = require("../facade/me");
 
 const getById = async (req, res) => {
   const id = req.cookies.cookieID;  // Verifica o cookie "cookieID"
-  console.log("ID do cookie:", id);  // Log do ID do cookie recebido
+  // console.log("ID do cookie:", id);  // Log do ID do cookie recebido
 
   if (!id) {
     console.log("Cookie não encontrado, usuário não autenticado.");  // Log quando o cookie não é encontrado
