@@ -39,6 +39,15 @@ const get = async (object) => {
     };
     return await dbo.get(tableName, limit, page, params);
   }
+  
+  // Adicionar essa verificação para o caso específico do NFC
+  if (object.nfcPending === 'true') {
+    const filters = [
+      { column: "nfc_activated", operator: "=", value: 0 }
+    ];
+    return await dbo.get(tableName, filters, limit, page);
+  }
+  
   return await dbo.get(tableName, limit, page);
 };
 
@@ -95,6 +104,8 @@ const insert = async (object) => {
         idUser: userId,
         idGroup: 1
       });
+
+      console.log(`✅ Novo usuário criado: ${object.name} (${object.email}) | ID: ${userId}`);
       
       // Retornar usuário com senha original para possibilitar envio de email no frontend
       return { 

@@ -69,23 +69,112 @@ const insert = async object => {
     return { errors }
   }
 
-  // Verifica se já existe check-in
-  const checkResult = await get({
-    user_id: object.user_id,
-    event_id: object.event_id,
-    hour: object.hour
-  })
+  // Normaliza os campos para ficar compatível com diferentes formatos de nomes de campos
+  const userId = object.userId || object.user_id;
+  const eventId = object.eventId || object.event_id;
+  const { hour } = object;
 
-  if (checkResult.exists) {
+  // 1. Primeiro, verifica se o usuário já tem qualquer check-in neste horário (mesmo em outros eventos)
+  const hourConflictCheck = await dbo.get(
+  tableName,
+  [
+    { column: 'user_id', operator: '=', value: userId },
+    { column: 'hour', operator: '=', value: hour }
+  ],
+  1,
+  1,
+  null,
+  null,
+  [`${tableName}.*`]
+);
+
+// Se encontrou algum check-in do usuário neste horário
+if (hourConflictCheck.total > 0) {
+  const conflictingCheckIn = hourConflictCheck.data[0];
+  
+  // Se o check-in encontrado é para o mesmo evento, é uma duplicata exata
+  if (conflictingCheckIn.event_id == eventId) {
     return { 
-      error: true, 
+      success: false, // Mudamos para false para indicar que não é uma nova inserção
       message: 'Check-in já existe para este usuário neste evento e horário',
-      status: 409
+      status: 409,
+      checkIn: conflictingCheckIn,
+      isDuplicate: true,
+      sameEvent: true  // Flag adicional para indicar que é o mesmo evento
+    }
+  } 
+  // Se o check-in encontrado é para outro evento, é um conflito de horário
+  else {
+    return { 
+      success: false,
+      message: 'Usuário já está inscrito em outro evento neste mesmo horário',
+      status: 409,
+      checkIn: conflictingCheckIn,
+      isHourConflict: true,
+      conflictEventId: conflictingCheckIn.event_id,
+      sameEvent: false  // Flag para indicar que é outro evento
     }
   }
-
-  return await dbo.insert(object, tableName)
 }
+
+  // 2. Se chegou aqui, não há conflito, então prepara o objeto para inserção
+  const insertObject = {
+    user_id: userId,
+    event_id: eventId,
+    hour: hour,
+    user_name: object.userName || object.user_name,
+    admin_id: object.adminId || object.admin_id
+  }
+
+  try {
+    // Tenta inserir no banco de dados
+    const result = await dbo.insert(insertObject, tableName)
+    return result
+  } catch (dbError) {
+    // Captura erros de duplicação no nível do banco de dados (última camada de proteção)
+    console.error('Erro ao inserir check-in:', dbError)
+    
+    // Se for erro de chave duplicada, considera como sucesso mas avisa que já existe
+    if (dbError.code === 'ER_DUP_ENTRY') {
+      // Verificar novamente para saber se é conflito de hora ou duplicata exata
+      const retryCheck = await dbo.get(
+        tableName,
+        [
+          { column: 'user_id', operator: '=', value: userId },
+          { column: 'hour', operator: '=', value: hour }
+        ],
+        1,
+        1,
+        null,
+        null,
+        [`${tableName}.*`]
+      );
+      
+      if (retryCheck.total > 0) {
+        const existingRecord = retryCheck.data[0];
+        if (existingRecord.event_id == eventId) {
+          return {
+            success: true,
+            message: 'Check-in já registrado anteriormente',
+            status: 409,
+            isDuplicate: true
+          }
+        } else {
+          return {
+            success: false,
+            message: 'Usuário já está inscrito em outro evento neste mesmo horário',
+            status: 409,
+            isHourConflict: true,
+            conflictEventId: existingRecord.event_id
+          }
+        }
+      }
+    }
+    
+    // Outros erros são repassados
+    throw dbError
+  }
+};
 
 const update = async (object, id) => {
   if (!id) {
