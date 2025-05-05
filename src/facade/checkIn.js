@@ -58,6 +58,13 @@ const get = async object => {
   )
 }
 
+const getCheckInExportData = async (hour, eventId) => {
+  if (!hour || !eventId) {
+    return [];
+  }
+  return await dbo.getCheckInExportData(hour, eventId);
+};
+
 const insert = async object => {
   try {
     await validation.object.validateAsync(object, {
@@ -203,5 +210,6 @@ module.exports = {
   get,
   insert,
   update,
-  remove
+  remove,
+  getCheckInExportData,
 }

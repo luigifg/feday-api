@@ -10,8 +10,8 @@ module.exports = {
     
   },
   pool: {
-    min: 100,          // Começar com um bom número de conexões prontas
-    max: 300,         // Suporte para picos de até 100 conexões simultâneas
+    min: 200,          // Começar com um bom número de conexões prontas
+    max: 500,         // Suporte para picos de até 100 conexões simultâneas
     acquireTimeoutMillis: 60000,  // 1 minuto para timeout de aquisição
     createTimeoutMillis: 30000,   // 30 segundos para timeout de criação
     idleTimeoutMillis: 120000,    // 2 minutos antes de fechar conexões ociosas

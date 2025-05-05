@@ -152,6 +152,37 @@ const login = async (tableName, email) => {
   return result;
 };
 
+const getCheckInExportData = async (hour, eventId) => {
+  try {
+    const result = await db("check_in AS c")
+      .select(
+        "c.id AS check_in_id",
+        "c.user_id",
+        "c.user_name",
+        "c.hour",
+        "c.event_id",
+        "e.title AS event_title",
+        "e.room",
+        "e.speaker",
+        "u.email",
+        "u.company",
+        "u.position"
+      )
+      .innerJoin("user AS u", "c.user_id", "u.id")
+      .leftJoin("participation AS e", "c.event_id", "e.id")
+      .whereNull("c.deleted_at")
+      .where("c.hour", hour)
+      .where("c.event_id", eventId)
+      .whereNull("u.deleted_at")
+      .orderBy(["e.title", "u.name"]);
+
+    return result;
+  } catch (error) {
+    console.error("Erro ao buscar dados para exportação:", error);
+    return [];
+  }
+};
+
 const getEventParticipantsCount = async () => {
   try {
     // console.log("Executando consulta para contar participantes por evento");
@@ -231,4 +262,5 @@ module.exports = {
   login,
   getPendingImporter,
   validateAcl,
+  getCheckInExportData,
 };
